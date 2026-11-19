@@ -1,4 +1,5 @@
 import { Plugin } from "@opencode/plugin/tui"
+import { createComponent, createElement, insert, insertNode, setProp } from "@opentui/solid"
 import { createEffect, createSignal, Show } from "solid-js"
 import { execFile } from "node:child_process"
 import { homedir } from "node:os"
@@ -113,28 +114,37 @@ export default Plugin.define({
       const time = reset(limit)
       return `${percent(limit.left)} · ${time === "—" ? "reset unknown" : time === "now" ? "reset due" : `resets in ${time}`}`
     }
+    const text = (content: () => string, color = () => theme.text.muted) => {
+      const node = createElement("text")
+      createEffect(() => { setProp(node, "fg", color()) })
+      insert(node, content)
+      return node
+    }
 
     ui.slot({
       append: "prompt.footer.status",
-      render: () => (
-        <Show when={visible()}>
-          <text fg={theme.text.muted} flexShrink={0}>
-            {`5h ${status(limits()[0])} · Wk ${status(limits()[1])}`}
-          </text>
-        </Show>
-      ),
+      render: () => createComponent(Show, {
+        get when() { return visible() },
+        get children() {
+          const node = text(() => `5h ${status(limits()[0])} · Wk ${status(limits()[1])}`)
+          setProp(node, "flexShrink", 0)
+          return node
+        },
+      }),
     })
     ui.slot({
       append: "sidebar.content",
-      render: () => (
-        <Show when={visible()}>
-          <box flexDirection="column">
-            <text fg={theme.text.base}><b>{provider() === "opencode-go" ? "OpenCode Go usage" : "Codex usage"}</b></text>
-            <text fg={theme.text.muted}>{`5h: ${sidebar(limits()[0])}`}</text>
-            <text fg={theme.text.muted}>{`Weekly: ${sidebar(limits()[1])}`}</text>
-          </box>
-        </Show>
-      ),
+      render: () => createComponent(Show, {
+        get when() { return visible() },
+        get children() {
+          const box = createElement("box")
+          setProp(box, "flexDirection", "column")
+          insertNode(box, text(() => provider() === "opencode-go" ? "OpenCode Go usage" : "Codex usage", () => theme.text.base))
+          insertNode(box, text(() => `5h: ${sidebar(limits()[0])}`))
+          insertNode(box, text(() => `Weekly: ${sidebar(limits()[1])}`))
+          return box
+        },
+      }),
     })
     return () => clearInterval(timer)
   },
