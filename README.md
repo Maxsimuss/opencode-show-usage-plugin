@@ -7,10 +7,6 @@ A small OpenCode v2 TUI plugin that shows your remaining 5-hour and weekly usage
 
 ## Install
 
-Clone this repository, then add its absolute path to the `plugins` array in your OpenCode `cli.json`:
-
-```json
-{
-  "plugins": ["/path/to/opencode-show-usage-plugin"]
-}
+```sh
+opencode plugin add github:Maxsimuss/opencode-show-usage-plugin
 ```
